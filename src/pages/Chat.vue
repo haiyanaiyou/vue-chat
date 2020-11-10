@@ -14,19 +14,21 @@
       <!-- 聊天内容 -->
       <div class="content" id="chatContainer">
         <div v-for="(item, index) in messageList" :key="index">
-          <!-- 其他人 -->
-          <div v-if="item.content">
-            <!-- 自己 -->
-            <div class="me" v-if="currentUser === item.username">
-              <span class="dialog-content">{{ item.content }}</span>
-              <img src="@/assets/imgs/user.jpg" alt="" srcset="" />
-            </div>
-            <div class="other" v-else>
-              <img src="@/assets/imgs/other-one.jpg" alt="" srcset="" />
-              <div class="dialog-content-other">
-                <p class="other-name">{{ item.username }}</p>
-                <span class="other-content">{{ item.content }}</span>
-              </div>
+          <div class="me" v-if="currentUser === item.username">
+            <span class="dialog-content" v-if="item.content">{{
+              item.content
+            }}</span>
+            <img :src="item.imgSrc" class="content-img" v-else alt="" />
+            <img src="@/assets/imgs/user.jpg" alt="" srcset="" />
+          </div>
+          <div class="other" v-else>
+            <img src="@/assets/imgs/other-one.jpg" alt="" srcset="" />
+            <div class="dialog-content-other">
+              <p class="other-name">{{ item.username }}</p>
+              <span class="other-content" v-if="item.content">{{
+                item.content
+              }}</span>
+              <img :src="item.imgSrc" class="content-img" v-else alt="" />
             </div>
           </div>
         </div>
@@ -36,7 +38,12 @@
         <div class="footer-content">
           <span class="iconfont upload"
             >&#xe70f;
-            <input type="file" accept=".png, .jpg .jpeg" @change="handleUpload" class="input-file" />
+            <input
+              type="file"
+              accept=".png, .jpg .jpeg"
+              @change="handleUpload"
+              class="input-file"
+            />
           </span>
           <span class="iconfont" @click="handleShowEmoji">&#xe745;</span>
           <input
@@ -80,17 +87,12 @@ export default {
       message: "",
       tip: "",
       socket: {},
-      messageList: [
-        {
-          userId: 0,
-          username: "",
-          content: "",
-        },
-      ],
+      messageList: [],
       currentUser: "",
       type: "",
       container: {},
       showDialog: false,
+      imgSrc: "",
     };
   },
   created() {
@@ -137,9 +139,7 @@ export default {
       this.message = "";
       this.$nextTick(() => {
         this.container = this.$el.querySelector("#chatContainer");
-        console.log(this.container.scrollHeight, '+++++++')
-        // this.container.scrollTop = this.container.scrollHeight;
-        this.container.scrollIntoView()
+        this.container.scrollIntoView();
       });
     },
     // 选择表情
@@ -147,7 +147,6 @@ export default {
       this.showDialog = true;
     },
     onSelectEmoji(emoji) {
-      console.log(emoji.data);
       this.message += emoji.data;
       this.showDialog = false;
       this.$nextTick(() => {
@@ -155,10 +154,20 @@ export default {
       });
     },
     // 发送图片
-    handleUpload(e){
-      console.log(e.target.files[0])
-
-    }
+    handleUpload(e) {
+      console.log(e.target.files[0]);
+      let windowURL = window.URL || window.webkitURL;
+      this.imgSrc = windowURL.createObjectURL(e.target.files[0]);
+      const obj = {
+        username: this.currentUser,
+        imgSrc: this.imgSrc,
+      };
+      window.socket.emit("message", obj);
+      this.$nextTick(() => {
+        this.container = this.$el.querySelector("#chatContainer");
+        this.container.scrollIntoView();
+      });
+    },
   },
 };
 </script>
@@ -209,6 +218,10 @@ footer {
   img {
     width: 32px;
     height: 32px;
+  }
+  .content-img{
+    width: 80px;
+    height: 80px;
   }
   .other {
     display: flex;
