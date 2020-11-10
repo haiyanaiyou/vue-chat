@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="home">
-      <header>
+      <header  @click="showDialog = false">
         <h1>
           chat
           <span class="online"
@@ -12,7 +12,7 @@
       <!-- 用户提示 -->
       <p class="chat-tip">{{ user.username }} {{ type }}</p>
       <!-- 聊天内容 -->
-      <div class="content" id="chatContainer">
+      <div class="content" id="chatContainer" @click="showDialog = false">
         <div v-for="(item, index) in messageList" :key="index">
           <div class="me" v-if="currentUser === item.username">
             <span class="dialog-content" v-if="item.content">{{
@@ -32,6 +32,7 @@
             </div>
           </div>
         </div>
+        <div style="height: 40px;"></div>
       </div>
       <p class="error-tip">{{ tip }}</p>
       <footer>
@@ -43,6 +44,7 @@
               accept=".png, .jpg .jpeg"
               @change="handleUpload"
               class="input-file"
+              ref="upload"
             />
           </span>
           <span class="iconfont" @click="handleShowEmoji">&#xe745;</span>
@@ -163,6 +165,7 @@ export default {
         imgSrc: this.imgSrc,
       };
       window.socket.emit("message", obj);
+      this.$refs.upload.value = '';
       this.$nextTick(() => {
         this.container = this.$el.querySelector("#chatContainer");
         this.container.scrollIntoView();
@@ -219,7 +222,7 @@ footer {
     width: 32px;
     height: 32px;
   }
-  .content-img{
+  .content-img {
     width: 80px;
     height: 80px;
   }
